@@ -1,0 +1,193 @@
+﻿@model IEnumerable<EMI.Models.GenerateEMISchedule>
+
+@{
+    ViewBag.Title = "GenerateEMISchedule";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    int i = 0;
+}
+
+<div class="row">
+    <div class="col-md-6">
+        @using (Html.BeginForm())
+        {
+            @Html.AntiForgeryToken()
+
+            <div class="form-horizontal">
+                <h4>Generate EMI Schedule</h4>
+                <hr />
+                @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                <div class="form-group">
+                    @Html.LabelFor(model => model.FirstOrDefault().EmiPlanMasterSelect, htmlAttributes: new { @class = "control-label col-md-2" })
+                    <div class="col-md-10">
+                        @Html.DropDownListFor(m => m.FirstOrDefault().EmiPlanMasterSelect, new SelectList(ViewBag.EmiPlan, "Value", "Text"), new { @class = "form-control forntsize" })
+                        @Html.ValidationMessageFor(m => m.FirstOrDefault().EmiPlanMasterSelect, "", new { @style = "color:red" })
+
+                    </div>
+                </div>
+                <div class="display-tenure-roi" style="display:none">
+                    <div class="form-group">
+                        <label class="control-label col-md-2">Tenure</label>
+                        <div class="col-md-10">
+                            <input class="form-control" id="txtTenure" name="Tenure" readonly="readonly" />
+                            @Html.HiddenFor(model => model.FirstOrDefault().Tenure) 
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label col-md-2">ROI</label>
+                        <div class="col-md-10">
+                            <input class="form-control" id="txtROI" name="ROI" readonly="readonly" />
+                            @Html.HiddenFor(model => model.FirstOrDefault().ROI)
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    @Html.LabelFor(model => model.FirstOrDefault().LoanAmount, htmlAttributes: new { @class = "control-label col-md-2" })
+                    <div class="col-md-10">
+                        @Html.EditorFor(model => model.FirstOrDefault().LoanAmount, new { htmlAttributes = new { @class = "form-control" } })
+                        @Html.ValidationMessageFor(model => model.FirstOrDefault().LoanAmount, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group">
+                    @Html.LabelFor(model => model.FirstOrDefault().LoanDate, htmlAttributes: new { @class = "control-label col-md-2" })
+                    <div class="row">
+                        <div class="col-md-6">
+                            @Html.EditorFor(model => model.FirstOrDefault().LoanDate, new { htmlAttributes = new { @class = "form-control", type = "date" } })
+                            @Html.ValidationMessageFor(model => model.FirstOrDefault().LoanDate, "", new { @class = "text-danger" })
+                        </div>
+                        <div class="col-md-6">
+                            <button type="button" class="btn btn-primary" id="btnCalculateEMI" style="width:150px;"> Calculate EMI</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    @Html.LabelFor(model => model.FirstOrDefault().EmiAmount, htmlAttributes: new { @class = "control-label col-md-2" })
+                    <div class="col-md-10">
+                        @Html.EditorFor(model => model.FirstOrDefault().EmiAmount, new { htmlAttributes = new { @class = "form-control" } })
+                        @Html.ValidationMessageFor(model => model.FirstOrDefault().EmiAmount, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="col-md-offset-2 col-md-10">
+                        <input type="submit" value="Generate Schedule" class="btn btn-success p-2 m-2" />
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+    <div class="col-md-6">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">Emi No </th>
+                    <th scope="col">Loan Date</th>
+                    <th scope="col">EMI Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>
+                            @{ i++; }
+                            <span class="=text-center">@i</span>
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.DueDate)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.EmiAmount)
+                        </td>
+                    </tr>
+                }
+
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+<script type="text/javascript">
+    var emiPlanMasterId = $("#EmiPlanMasterSelect");
+    var divShow = $(".display-tenure-roi");
+    var txtTenure = $("#txtTenure");
+    var txtROI = $("#txtROI");
+    var btnCalculateEMI = $("#btnCalculateEMI");
+    var loanAmount = $("#LoanAmount");
+    var loanDate = $("#LoanDate");
+    var emiAmount = $("#EmiAmount");
+    function commonFun(emiPlan) {
+        if (emiPlan) {
+            var data = emiPlan.split('|');
+            txtTenure.val(data[1]);
+            txtROI.val(data[2]);
+            $("#Tenure").val(data[1]);
+            $("#ROI").val(data[2]);
+            divShow.css("display", "block");
+            txtTenure.attr("disabled", "disabled");
+            txtROI.attr("disabled", "disabled");
+        } else {
+            divShow.css("display", "none");
+        }
+    }
+    $(document).ready(function () {
+        
+        var emiPlan = emiPlanMasterId.val();
+        commonFun(emiPlan);
+        emiAmount.attr("disabled", "disabled");
+    });
+
+    $(document).on('change', '#EmiPlanMasterSelect', function (event) {
+        var emiPlan = $(this).val();
+        loanAmount.val('');
+        loanDate.val('');
+        emiAmount.val('');
+        commonFun(emiPlan) 
+        //location.reload();
+    });
+    $(document).on('click', '#btnCalculateEMI', function (event) {
+    //    [P + { P x(R/ 100)}]/T
+    //P = Loan Amount
+    //T = Tenure
+    //R = ROI
+        if (loanAmount.val() == '') {
+            alert("Please enter loan Amount");
+            return;
+        }
+        if (loanDate.val() == '') {
+            alert("Please select loan date");
+            return;
+        }
+        var P = loanAmount.val();
+        var T = txtTenure.val();
+        var R = txtROI.val();
+       // var monthlyIntRet = R / 12 / 100;
+       // var emi = (P + ( P *(R/ 100)))/T;
+       
+        var emi = {
+            P: P,
+            T: T,
+            R: R
+        };
+        $.ajax({
+            url: "/Home/CalculateEMI",
+            data: JSON.stringify(emi),
+            type: "POST",
+            contentType: "application/json;charset=utf-8",
+            dataType: "json",
+            success: function (result) {
+                console.log(result);
+                emiAmount.val(result);
+                emiAmount.attr("disabled", "disabled");
+            },
+            error: function (errormessage) {
+                alert(errormessage.responseText);
+            }
+        });
+    });
+
+
+</script>
+}
