@@ -17,6 +17,7 @@ namespace EMI.Models
         public decimal LoanAmount { get; set; }
         public bool Status { get; set; }
         [Required]
+        [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true)]
         public DateTime LoanDate { get; set; }
         public DateTime DueDate { get; set; }
         public decimal EmiAmount { get; set; }
